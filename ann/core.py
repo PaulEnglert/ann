@@ -14,6 +14,23 @@ out_hdlr.setLevel(logging.INFO)
 log.addHandler(out_hdlr)
 log.setLevel(logging.INFO)
 
+
+class util:
+	@staticmethod
+	def log_learning_step_data(id, features, target, output):
+		out = [id,]+features+[target,]+[output,]
+		log.info(';'.join([str(item) for item in out]))
+	
+	@staticmethod
+	def log_learning_step_weights(id, theta, weights):
+		out = [id, theta]+weights
+		log.info(';'.join([str(item) for item in out]))
+	
+	@staticmethod
+	def log(line):
+		log.info(str(line))
+
+
 """
 Representation of a neuron in the network 
 """
@@ -106,13 +123,13 @@ class sl_network:
 		self.neurons = []
 		for i in xrange(0, num_neurons):
 			self.neurons.append(neuron(self.num_inputs, activation_type, **kwargs))
-		sl_network.log('Built network with '+str(num_neurons) + ' neurons.')
+		util.log('Built network with '+str(num_neurons) + ' neurons.')
 
 	def learn(self, data, num_iterations):
-		sl_network.log('Learning for '+str(num_iterations) + ' iterations.')
+		util.log('Learning for '+str(num_iterations) + ' iterations.')
 		for i in xrange(0, num_iterations):
-			sl_network.log('Iteration: '+str(i))
-			sl_network.log('id;features[];target;output')
+			util.log('Iteration: '+str(i))
+			util.log('id;features[];target;output')
 
 			zero_error = True
 			for features, target in data:
@@ -122,15 +139,15 @@ class sl_network:
 						neur.update_weights(sl_network.LEARNING_RATE, features, ( neur.output > target[index] ))
 						zero_error = False
 					# log data and output
-					sl_network.log_learning_step_data(index, features, target[index], neur.output)
+					util.log_learning_step_data(index, features, target[index], neur.output)
 			# log weights
-			sl_network.log('id;theta;weights')
+			util.log('id;theta;weights')
 			for index, neur in enumerate(self.neurons):
-				sl_network.log_learning_step_weights(index, neur.theta_weight, neur.input_weights)
+				util.log_learning_step_weights(index, neur.theta_weight, neur.input_weights)
 
 			if zero_error:
 				self.reached_zero_error = True
-				sl_network.log('Stopping iteration because zero error has been reached.')
+				util.log('Stopping iteration because zero error has been reached.')
 				break
 
 	def classify(self, features):
@@ -139,21 +156,6 @@ class sl_network:
 			neur.compute_output(features)
 			out.append(neur.output)
 		return out
-
-
-	@staticmethod
-	def log_learning_step_data(id, features, target, output):
-		out = [id,]+features+[target,]+[output,]
-		log.info(';'.join([str(item) for item in out]))
-	
-	@staticmethod
-	def log_learning_step_weights(id, theta, weights):
-		out = [id, theta]+weights
-		log.info(';'.join([str(item) for item in out]))
-	
-	@staticmethod
-	def log(line):
-		log.info(str(line))
 
 
 
