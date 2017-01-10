@@ -29,11 +29,14 @@ class AdvancedTestSuite(unittest.TestCase):
         assert network.neurons[0].activation_type == 'step'
 
         # execute learning
-        network.learn(data, 10)
+        network.learn(data, 50)
 
         assert network.neurons[0].output is not None
         assert network.neurons[0].wsi is not None
         assert network.reached_zero_error
+
+        # assert prediction
+        assert network.classify([0.12, 0.9])[0] == 1
 
 
 if __name__ == '__main__':

@@ -117,7 +117,15 @@ class sl_network:
 
 			if zero_error:
 				self.reached_zero_error = True
+				sl_network.log('Stopping iteration because zero error has been reached.')
 				break
+
+	def classify(self, features):
+		out = []
+		for neur in self.neurons:
+			neur.compute_output(features)
+			out.append(neur.output)
+		return out
 
 
 	@staticmethod
