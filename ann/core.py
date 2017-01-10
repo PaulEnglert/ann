@@ -106,8 +106,10 @@ class sl_network:
 		self.neurons = []
 		for i in xrange(0, num_neurons):
 			self.neurons.append(neuron(self.num_inputs, activation_type, **kwargs))
+		sl_network.log('Built network with '+str(num_neurons) + ' neurons.')
 
 	def learn(self, data, num_iterations):
+		sl_network.log('Learning for '+str(num_iterations) + ' iterations.')
 		for i in xrange(0, num_iterations):
 			sl_network.log('Iteration: '+str(i))
 			sl_network.log('id;features[];target;output')
@@ -116,11 +118,11 @@ class sl_network:
 			for features, target in data:
 				for index, neur in enumerate(self.neurons):
 					neur.compute_output(features)
-					if neur.output != target:
-						neur.update_weights(sl_network.LEARNING_RATE, features, ( neur.output > target ))
+					if neur.output != target[index]:
+						neur.update_weights(sl_network.LEARNING_RATE, features, ( neur.output > target[index] ))
 						zero_error = False
 					# log data and output
-					sl_network.log_learning_step_data(index, features, target, neur.output)
+					sl_network.log_learning_step_data(index, features, target[index], neur.output)
 			# log weights
 			sl_network.log('id;theta;weights')
 			for index, neur in enumerate(self.neurons):
