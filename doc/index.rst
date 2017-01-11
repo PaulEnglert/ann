@@ -10,11 +10,16 @@ Welcome to ANN's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+This documentation describes the general structuring of the ANN project.
 
+**Currently Available Network Topologies:**
 
-Indices and tables
-==================
+* single-layer feed-forward neural network with dynamic numbers of neurons
+* multi-layer feed-forward neural network (using backpropagation) with dynamic numbers of layers and neurons
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. Indices and tables
+.. ==================
+
+.. * :ref:`genindex`
+.. * :ref:`modindex`
+.. * :ref:`search`
