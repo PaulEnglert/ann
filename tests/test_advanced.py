@@ -22,7 +22,7 @@ class AdvancedTestSuite(unittest.TestCase):
 			([2.4, -0.34], [-1])
 		]
 		# setup network
-		network = core.sl_network(2)
+		network = core.SLNetwork(2, 0.5)
 		network.build(1, 'step')
 
 		assert len(network.neurons) == 1
@@ -31,8 +31,6 @@ class AdvancedTestSuite(unittest.TestCase):
 		# execute learning
 		network.learn(data, 50)
 
-		assert network.neurons[0].output is not None
-		assert network.neurons[0].wsi is not None
 		assert network.reached_zero_error
 
 		# assert prediction
@@ -51,7 +49,7 @@ class AdvancedTestSuite(unittest.TestCase):
 			([-2.4, 0.34], [1, -1])
 		]
 		# setup network
-		network = core.sl_network(2)
+		network = core.SLNetwork(2, 0.5)
 		network.build(2, 'step')
 
 		assert len(network.neurons) == 2
@@ -61,10 +59,6 @@ class AdvancedTestSuite(unittest.TestCase):
 		# execute learning
 		network.learn(data, 50)
 
-		assert network.neurons[0].output is not None
-		assert network.neurons[0].wsi is not None
-		assert network.neurons[1].output is not None
-		assert network.neurons[1].wsi is not None
 		assert network.reached_zero_error
 
 		# assert prediction
@@ -72,16 +66,14 @@ class AdvancedTestSuite(unittest.TestCase):
 		assert output[0] == 1 and output[1] == 1
 
 	def test_multi_layer(self):
-		data = [ # boolean 'xor' function -> -1:false, 1: true
+		data = [ # boolean 'xor' function
 			([1, 1], [0]),
 			([1, 0], [1]),
 			([0, 0], [0]),
 			([0, 1], [1])
 		]
 		# setup network
-		core.ml_network.LEARNING_RATE = 0.5
-		core.ml_network.USE_ALPHA = False
-		network = core.ml_network(2)
+		network = core.MLNetwork(2, 0.5, False)
 		layers = [3,1]#[2,2,1]
 		n_neruons = sum(layers)
 		network.build(layers, 'sigmoidal')
