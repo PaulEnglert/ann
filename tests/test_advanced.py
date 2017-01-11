@@ -71,6 +71,27 @@ class AdvancedTestSuite(unittest.TestCase):
 		output = network.classify([0.12, 0.9])
 		assert output[0] == 1 and output[1] == 1
 
+	def test_multi_layer(self):
+		data = [ # boolean 'xor' function -> -1:false, 1: true
+			([1, 1], [0]),
+			([1, 0], [1]),
+			([0, 0], [0]),
+			([0, 1], [1])
+		]
+		# setup network
+		core.ml_network.LEARNING_RATE = 0.5
+		core.ml_network.USE_ALPHA = False
+		network = core.ml_network(2)
+		layers = [3,1]#[2,2,1]
+		n_neruons = sum(layers)
+		network.build(layers, 'sigmoidal')
+
+		assert network.num_layers == len(layers)
+		assert len(network.neurons) == n_neruons
+
+		# execute learning
+		network.learn(data, 1500)
+
 
 if __name__ == '__main__':
 	unittest.main()
