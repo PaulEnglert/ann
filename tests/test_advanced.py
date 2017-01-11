@@ -74,7 +74,7 @@ class AdvancedTestSuite(unittest.TestCase):
 		]
 		# setup network
 		network = core.MLNetwork(2, 0.5, False)
-		layers = [3,1]#[2,2,1]
+		layers = [5,1]#[2,2,1]
 		n_neruons = sum(layers)
 		network.build(layers, 'sigmoidal')
 
@@ -84,6 +84,36 @@ class AdvancedTestSuite(unittest.TestCase):
 		# execute learning
 		network.learn(data, 1500)
 
+
+	def test_restricted_boltzmann_machine(self):
+		num_inputs = 6
+		num_hidden_units = 2
+		learning_rate = 0.5
+		data = [
+			([1,1,1,0,0,0],1), # data clustered into 1 and 0 -> that's what the rbm should find out
+			([1,0,1,0,0,0],1),
+			([1,1,1,0,0,0],1),
+			([0,0,1,1,1,0],0), 
+			([0,0,1,1,0,0],0),
+			([0,0,1,1,1,0],0)
+		]
+		# setup network
+		network = core.RBMNetwork(num_inputs, num_hidden_units, learning_rate)
+		n_neruons = num_inputs+num_hidden_units
+		network.build(activation_type='sigmoidal')
+
+		assert network.num_layers == 2
+		assert len(network.neurons) == n_neruons
+
+		# execute learning
+		network.learn(data, 1500)
+
+		print('\nClassifying known [0,0,1,1,1,0] (to determine which hidden neuron belongs to which class:')
+		outputs = network.classify([0,0,1,1,1,0])
+		print(';'.join([str(o) for o in outputs]))
+		print('\nClassifying new [0,0,0,1,1,0]:')
+		outputs = network.classify([0,0,0,1,1,0])
+		print(';'.join([str(o) for o in outputs]))
 
 if __name__ == '__main__':
 	unittest.main()

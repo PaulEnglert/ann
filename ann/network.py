@@ -21,20 +21,21 @@ class Neuron:
 
 		self.input_weights = []
 		for x in xrange(0, num_inputs):
-			self.input_weights.append(random())
-		self.theta_weight = random()
+			self.input_weights.append(random()-0.5)
+		self.theta_weight = random()-0.5
 
 		self.activation_type = activation_type
 		if activation_type not in Neuron.ACTIVATION_TYPES:
 			raise Exception('Activation Function Unknown.')
 		self.af_param = kwargs.get('af_param',1)
 
-	def compute_output(self, input_data):
+	def compute_output(self, input_data, no_update_wsi=False):
 		"""
 		Compute the output value of the neuron 
 		"""
 		# compute weighted sum of inputs
-		self.compute_wsi(input_data)
+		if not no_update_wsi:
+			self.compute_wsi(input_data)
 		# compute output based on initialization
 		if self.activation_type == 'step':
 			self.output = Neuron.step_function(self.wsi)
@@ -45,13 +46,26 @@ class Neuron:
 		elif self.activation_type == 'gaussian':
 			self.output = Neuron.gaussian_function(self.wsi)
 
-	def compute_wsi(self, input_data):
+	# def compute_wsi(self, input_data):
+	# 	"""
+	# 	Compute the weighted sum of input vectors
+	# 	"""
+	# 	self.wsi = self.theta_weight
+	# 	for index, value in enumerate(input_data):
+	# 		self.wsi = self.wsi + ( value * self.input_weights[index] )
+
+	def compute_wsi(self, input_data, weights = None, theta_weight = None):
 		"""
 		Compute the weighted sum of input vectors
 		"""
-		self.wsi = self.theta_weight
-		for index, value in enumerate(input_data):
-			self.wsi = self.wsi + ( value * self.input_weights[index] )
+		if weights is None or theta_weight is None:
+			self.wsi = self.theta_weight
+			for index, value in enumerate(input_data):
+				self.wsi = self.wsi + ( value * self.input_weights[index] )
+		else:
+			self.wsi = theta_weight
+			for index, value in enumerate(input_data):
+				self.wsi = self.wsi + ( value * weights[index] )
 
 	def update_weights(self):
 		"""
