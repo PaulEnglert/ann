@@ -49,9 +49,7 @@ class RBMNetwork(network.Network):
 
 	def learn(self, data, num_iterations):
 		for i in xrange(0,num_iterations):
-			for features, target in data:
-				# TODO for now assume we have only binary input as the network!!
-				
+			for features, target in data:				
 				#1. set input layer states to feature vector
 				input_neurons = self.get_layer_neurons(0)
 				for f_i, feature in enumerate(features):

@@ -12,4 +12,4 @@ This repository is an playground to implement a full-flexed artificial neural ne
 ## Development Notes
 * install python requirements in virtualenvironment based on `requirements.txt`.
 * docs are created by running `make html` inside `doc/` directory
-* tests are run by executing `nosetests` in the root of the project (use `nosetests --nocapture` to also see print statements)
+* tests are run by executing `nosetests` in the root of the project (use `nosetests --nocapture` to also see print statements, to run a single test use e.g. `nosetests tests.test_advanced:AdvancedTestSuite.test_restricted_boltzmann_machine_nb`)
