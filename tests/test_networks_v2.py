@@ -35,6 +35,11 @@ class NetworksTestSuiteV2(unittest.TestCase):
 		prediction = network.predict(np.asarray([[0,0,0,1,1,0]]))
 		network.print_prediction(prediction)
 
+		n = 10
+		dreamed = network.daydream(n)
+		print('\nDaydreaming for '+str(n)+' gibbs steps:')
+		print(dreamed)
+
 
 if __name__ == '__main__':
 	unittest.main()

@@ -13,6 +13,7 @@ class RBMNetwork:
 		self.num_hidden = num_hidden_neurons
 		self.learning_rate = learning_rate
 		self.is_constructed = False
+		self.is_trained = False
 
 	def construct(self):
 		# build weight matrix
@@ -52,18 +53,22 @@ class RBMNetwork:
 			error = np.sum((self.data - self.vis_probs) ** 2)
 			print('	100%:\n	error='+str(error)+'\n	...squared difference of data to expected visible state (probability)')
 		self.print_weights()
+		self.is_trained = True
 
 	def compute_hid_states(self, use_probs = False):
 		if use_probs:
 			self.hid_aes = np.dot(self.vis_probs, self.weights)
 		else:
 			self.hid_aes = np.dot(self.vis_states, self.weights)
-		self.hid_probs = _logistic_function(self.hid_aes)
+		self.hid_probs = self._logistic_function(self.hid_aes)
 		self.hid_states  = self.hid_probs > np.random.randn(self.data.shape[0], self.num_hidden+1)
 	
-	def compute_vis_states(self):
-		self.vis_aes = np.dot(self.hid_states, np.transpose(self.weights))
-		self.vis_probs = _logistic_function(self.vis_aes)
+	def compute_vis_states(self, use_probs = False):
+		if use_probs:
+			self.vis_aes = np.dot(self.hid_probs, np.transpose(self.weights))
+		else:
+			self.vis_aes = np.dot(self.hid_states, np.transpose(self.weights))
+		self.vis_probs = self._logistic_function(self.vis_aes)
 		# fix bias probability
 		self.vis_probs[:,-1] = 1
 		self.vis_states  = self.vis_probs > np.random.randn(self.data.shape[0], self.num_visible+1)
@@ -84,10 +89,39 @@ class RBMNetwork:
 		return self.labelling
 
 	def predict(self, data):
+		if not self.is_trained:
+			raise Exception('Network is not trained yet.')
 		data = np.append(data, np.ones((data.shape[0], 1), dtype=data.dtype), axis=1) # add column of bias states, all -> 1
 		self.vis_states = data.astype(bool)
 		self.compute_hid_states()
 		return self.hid_probs[:,:-1]
+
+	def daydream(self, num_steps):
+		if not self.is_trained:
+			raise Exception('Network is not trained yet.')
+		random_data = np.ones((num_steps, self.num_visible+1)) # create random data container
+		random_data[0,:-1] = np.random.rand(self.num_visible) # add random data to first row, the next rows will be populated in each iteration
+		for step in range(num_steps):
+			if step == num_steps-1:
+				break
+			# calculate hidden units states
+			vis_states = random_data.astype(bool)
+			hid_aes = np.dot(vis_states, self.weights)
+			hid_probs = self._logistic_function(hid_aes)
+			hid_probs[:,-1] = 1 # fix bias unit
+			hid_states  = hid_probs > np.random.randn(random_data.shape[0], self.num_hidden+1)
+			# calculate visible units states
+			vis_aes = np.dot(hid_states, np.transpose(self.weights))
+			vis_probs = self._logistic_function(vis_aes)
+			vis_probs[:,-1] = 1 # fix bias unit
+			vis_states  = vis_probs > np.random.randn(random_data.shape[0], self.num_visible+1)
+			# set the newly calculated visible states as the next data row in the random_data
+			random_data[step+1,:] = vis_states[step]
+		return random_data[:,:-1]
+
+	# Utility functions
+	def _logistic_function(self, x):
+		return 1 / (1 + np.exp(-x))
 
 	def print_weights(self):
 		print('')
@@ -117,7 +151,3 @@ class RBMNetwork:
 		print(header)
 		for row in prediction:
 			print(';'.join(str(i) for i in row))
-
-
-def _logistic_function(x):
-	return 1 / (1 + np.exp(-x))
