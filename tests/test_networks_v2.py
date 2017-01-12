@@ -41,5 +41,31 @@ class NetworksTestSuiteV2(unittest.TestCase):
 		print(dreamed)
 
 
+	def test_stacked_rbm_dbm(self):
+		num_inputs = 6
+		num_outputs = 2
+		num_layers = 2
+		learning_rate = 0.5
+		trainX = np.asarray([
+			[1,1,1,0,0,0],
+			[1,0,1,0,0,0],
+			[1,1,1,0,0,0],
+			[0,0,1,1,1,0], 
+			[0,0,1,1,0,0],
+			[0,0,1,1,1,0],
+		])
+		trainY = np.asarray([1,1,1,0,0,0])
+
+		network = core.DBNetwork(num_inputs, num_outputs, num_layers, learning_rate)
+
+		network.train(5, trainX)
+
+		network.label_units(trainX, trainY)
+		network.print_labelling()
+
+		prediction = network.predict(np.asarray([[0,0,0,1,1,0]]))
+		network.print_prediction(prediction)
+
+
 if __name__ == '__main__':
 	unittest.main()
