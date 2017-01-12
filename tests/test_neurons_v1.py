@@ -7,7 +7,7 @@ from ann import network
 import unittest
 
 
-class BasicTestSuite(unittest.TestCase):
+class NeuronsTestSuiteV1(unittest.TestCase):
 	"""Basic test cases."""
 
 	def test_step_activation_function(self):

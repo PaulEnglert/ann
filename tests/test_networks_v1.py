@@ -7,7 +7,7 @@ from ann import core
 import unittest
 
 
-class AdvancedTestSuite(unittest.TestCase):
+class NetworksTestSuiteV1(unittest.TestCase):
 	"""Advanced test cases."""
 
 	def test_perceptron_sn(self):
@@ -22,7 +22,7 @@ class AdvancedTestSuite(unittest.TestCase):
 			([2.4, -0.34], [-1])
 		]
 		# setup network
-		network = core.SLNetwork(2, 0.5)
+		network = core.v1SLNetwork(2, 0.5)
 		network.build(1, 'step')
 
 		assert len(network.neurons) == 1
@@ -49,7 +49,7 @@ class AdvancedTestSuite(unittest.TestCase):
 			([-2.4, 0.34], [1, -1])
 		]
 		# setup network
-		network = core.SLNetwork(2, 0.5)
+		network = core.v1SLNetwork(2, 0.5)
 		network.build(2, 'step')
 
 		assert len(network.neurons) == 2
@@ -73,7 +73,7 @@ class AdvancedTestSuite(unittest.TestCase):
 			([0, 1], [1])
 		]
 		# setup network
-		network = core.MLNetwork(2, 0.5, False)
+		network = core.v1MLNetwork(2, 0.5, False)
 		layers = [5,1]#[2,2,1]
 		n_neruons = sum(layers)
 		network.build(layers, 'sigmoidal')
@@ -98,7 +98,7 @@ class AdvancedTestSuite(unittest.TestCase):
 			([0,0,1,1,1,0],0)
 		]
 		# setup network
-		network = core.RBMNetwork(num_inputs, num_hidden_units, learning_rate)
+		network = core.v1RBMNetwork(num_inputs, num_hidden_units, learning_rate)
 		n_neruons = num_inputs+num_hidden_units
 		network.build(activation_type='sigmoidal')
 
@@ -128,7 +128,7 @@ class AdvancedTestSuite(unittest.TestCase):
 			([0.3,0.21,0.89,0.865,0.99,0.12],0)
 		]
 		# setup network
-		network = core.RBMNetwork(num_inputs, num_hidden_units, learning_rate)
+		network = core.v1RBMNetwork(num_inputs, num_hidden_units, learning_rate)
 		n_neruons = num_inputs+num_hidden_units
 		network.build(activation_type='sigmoidal')
 
