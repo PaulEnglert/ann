@@ -31,51 +31,40 @@ class RBMNetwork:
 			self.construct()
 
 		# prepare data
-		self.data = trainX
-		self.data = np.append(self.data, np.ones((self.data.shape[0], 1), dtype=self.data.dtype), axis=1) # add column of bias states, all -> 1
+		data = trainX
+		data = np.append(data, np.ones((data.shape[0], 1), dtype=data.dtype), axis=1) # add column of bias states, all -> 1
 
 		# run 
 		for epoch in range(num_epochs):
 			print('Starting Epoch '+str(epoch))
+
 			# forward (positive) move: compute the states& probabilities of the hidden units, based on the real data
-			self.vis_states = self.data.astype(bool)
-			self.compute_hid_states()
+			vis_states = data.astype(bool)
+			hid_aes = np.dot(vis_states, self.weights)
+			hid_probs = self._logistic_function(hid_aes)
+			hid_states  = hid_probs > np.random.randn(data.shape[0], self.num_hidden+1)
 			# calculate association -> meaning calculate which units are on together and which are not (probability based, could also be states instead)
-			self.pos_association = np.dot(np.transpose(self.vis_states), self.hid_probs) # vis_probs is not known yet, we'll take the states, which are equal to the dataset plus the bias
+			pos_association = np.dot(np.transpose(vis_states), hid_probs) # vis_probs is not known yet, we'll take the states, which are equal to the dataset plus the bias
+			
 			# backward (negative) move: compute the states & probabilities of the visible units based on the hidden states
-			self.compute_vis_states()
+			vis_aes = np.dot(hid_states, np.transpose(self.weights))
+			vis_probs = self._logistic_function(vis_aes)
+			vis_probs[:,-1] = 1 # fix bias unit
+			vis_states  = vis_probs > np.random.randn(data.shape[0], self.num_visible+1)
+
 			# forward (negative) move: recompute the states & probabilities of the hidden units, this time based on the expected outcome of the reverse step before
-			self.compute_hid_states(use_probs = True)
-			self.neg_association = np.dot(np.transpose(self.vis_probs), self.hid_probs)
+			hid_aes = np.dot(vis_probs, self.weights)
+			hid_probs = self._logistic_function(hid_aes)
+			hid_states  = hid_probs > np.random.randn(data.shape[0], self.num_hidden+1)
+			neg_association = np.dot(np.transpose(vis_probs), hid_probs)
+
 			# update weights
-			self.update_weights()
+			self.weights = self.weights + self.learning_rate*(pos_association - neg_association)
 			# measure
-			error = np.sum((self.data - self.vis_probs) ** 2)
+			error = np.sum((data - vis_probs) ** 2)
 			print('	100%:\n	error='+str(error)+'\n	...squared difference of data to expected visible state (probability)')
 		self.print_weights()
 		self.is_trained = True
-
-	def compute_hid_states(self, use_probs = False):
-		if use_probs:
-			self.hid_aes = np.dot(self.vis_probs, self.weights)
-		else:
-			self.hid_aes = np.dot(self.vis_states, self.weights)
-		self.hid_probs = self._logistic_function(self.hid_aes)
-		self.hid_states  = self.hid_probs > np.random.randn(self.data.shape[0], self.num_hidden+1)
-	
-	def compute_vis_states(self, use_probs = False):
-		if use_probs:
-			self.vis_aes = np.dot(self.hid_probs, np.transpose(self.weights))
-		else:
-			self.vis_aes = np.dot(self.hid_states, np.transpose(self.weights))
-		self.vis_probs = self._logistic_function(self.vis_aes)
-		# fix bias probability
-		self.vis_probs[:,-1] = 1
-		self.vis_states  = self.vis_probs > np.random.randn(self.data.shape[0], self.num_visible+1)
-
-
-	def update_weights(self):
-		self.weights = self.weights + self.learning_rate*(self.pos_association - self.neg_association)
 
 
 	def label_units(self, trainX, trainY):
@@ -92,9 +81,11 @@ class RBMNetwork:
 		if not self.is_trained:
 			raise Exception('Network is not trained yet.')
 		data = np.append(data, np.ones((data.shape[0], 1), dtype=data.dtype), axis=1) # add column of bias states, all -> 1
-		self.vis_states = data.astype(bool)
-		self.compute_hid_states()
-		return self.hid_probs[:,:-1]
+		vis_states = data.astype(bool)
+		hid_aes = np.dot(vis_states, self.weights)
+		hid_probs = self._logistic_function(hid_aes)
+		hid_states  = hid_probs > np.random.randn(data.shape[0], self.num_hidden+1)
+		return hid_probs[:,:-1]
 
 	def daydream(self, num_steps):
 		if not self.is_trained:
