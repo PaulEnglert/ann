@@ -101,11 +101,11 @@ class DBNetwork:
 	def get_label(self, probs):
 		if not self.is_labeled:
 			raise Exception('Network Output Units have not been labeled yet')
-		u = np.argmax(probs, axis=0)
+		u = np.unravel_index(np.argmax(probs), probs.shape)
 		for label, unit_data in self.unit_labels.iteritems():
 			unit, p = unit_data
-			if unit == u+1:
-				return int(label)
+			if unit == u:
+				return label
 		raise Exception('Winning unit has no label')
 
 	# utilities

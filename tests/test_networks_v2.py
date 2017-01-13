@@ -77,31 +77,33 @@ class NetworksTestSuiteV2(unittest.TestCase):
 		print "(downloading data...)"
 		dataset = datasets.fetch_mldata("MNIST Original")
 		(trainX, testX, trainY, testY) = train_test_split(
-			dataset.data / 255.0, dataset.target.astype("int0"), test_size = 0.033, train_size=0.067, random_state=42)
+			dataset.data / 255.0, dataset.target.astype("int0"), test_size = 0.33, train_size=0.67, random_state=42)
 
 		learning_rate = 0.05
 		network = core.DBNetwork(trainX.shape[1], len(np.unique(dataset.target)), 0, learning_rate, size_hidden_layers=300)
 
-		network.train(15, trainX, trainY, num_gibbs_sampling_steps=1)
+		epochs=25
+		network.train(epochs, trainX, trainY, num_gibbs_sampling_steps=1)
 
 		# network.label_units(trainX, trainY)
 		network.print_labelling_probs()
 		network.print_labelling()
 
 		# predict all and calculate statistics
-		#prediction = network.predict(testX)
-		# TODO transform prediction into usable format for classification_report()
-		#print(classification_report(testY, prediction))
+		print('\nStatistics')
+		prediction = network.predict(testX)
+		pred_labels = []
+		for p in prediction:
+			pred_labels.append(network.get_label(p))
+		print(classification_report(testY, pred_labels))
+		print('\n')
 		
 		for i in np.random.choice(np.arange(0, len(testY)), size = (10,)):
 			# classify the digit
 			pred = network.predict(np.atleast_2d(testX[i]))
 			# show the image and prediction
-			try:
-				print "Actual digit is {0}, predicted {1}".format(testY[i], network.get_label(pred[0]))
-			except:
-				print "Actual digit is {0}, predicted {1}".format(testY[i], pred[0])
-
+			print "Actual digit is {0}, predicted {1}".format(testY[i], network.get_label(pred[0]))
+		
 			# image = (testX[i] * 255).reshape((28, 28)).astype("uint8")
 			# cv2.imshow("Digit", image)
 			# cv2.waitKey(0)
