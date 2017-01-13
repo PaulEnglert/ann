@@ -16,13 +16,16 @@ class RBMNetwork:
 		self.is_trained = False
 		self.log = kwargs.get('log', True)
 
-	def construct(self):
-		# build weight matrix
-		self.weights = np.random.randn(self.num_visible, self.num_hidden)*0.1
-		# add bias weights column
-		self.weights = np.insert(self.weights, 0, 0, axis=1)
-		# add bias row
-		self.weights = np.insert(self.weights, 0, 0, axis=0)
+	def construct(self, weights=None):
+		# build weight matrix or use parameter
+		if weights is None:
+			self.weights = np.random.randn(self.num_visible, self.num_hidden)*0.1
+			# add bias weights column
+			self.weights = np.insert(self.weights, 0, 0, axis=1)
+			# add bias row
+			self.weights = np.insert(self.weights, 0, 0, axis=0)
+		else:
+			self.weights = weights
 		if self.log:
 			self.print_weights()
 		self.is_constructed = True
@@ -35,12 +38,9 @@ class RBMNetwork:
 		# prepare data
 		data = trainX
 		data = np.insert(data, 0, 1, axis=1) # add column of bias states, all -> 1
-
+		last_error=np.NaN
 		# run 
 		for epoch in range(num_epochs):
-			if self.log or log_epochs:
-				print('Epoch '+str(epoch))
-
 			# forward (positive) move: compute the states& probabilities of the hidden units, based on the real data
 			hid_aes = np.dot(data, self.weights)
 			hid_probs = self._logistic_function(hid_aes)
@@ -68,14 +68,20 @@ class RBMNetwork:
 
 			# update weights
 			self.weights = self.weights + self.learning_rate*((pos_association - neg_association) / data.shape[0])
+			# decay learning rate
+			self.learning_rate = self.learning_rate/2
 			# measure
+			last_error = np.sum((data - vis_probs) ** 2)
 			if self.log:
-				error = np.sum((data - vis_probs) ** 2)
-				print('	100%:\n	error='+str(error)+'\n	...squared difference of data to expected visible state (probability)')
+				print('Epoch '+str(epoch))
+				print('	100%:\n	error='+str(last_error)+'\n	...squared difference of data to expected visible state (probability)')
+			if not self.log and log_epochs:
+				print('	Epoch '+str(epoch)+': err='+str(last_error))
 		
 		if self.log:
 			self.print_weights()
 		self.is_trained = True
+		return last_error
 
 
 	def label_units(self, trainX, trainY):
@@ -88,15 +94,14 @@ class RBMNetwork:
 			self.labelling.append([l]+[np.average(output[np.where(output[...,0]==l)][...,u]) for u in range(1,self.num_hidden+1)])
 		return self.labelling
 
-	def predict(self, data, return_states=False):
+	def predict(self, data, return_states=False): # forward move in network
 		if not self.is_trained:
 			raise Exception('Network is not trained yet.')
-		data = np.append(data, np.ones((data.shape[0], 1), dtype=data.dtype), axis=1) # add column of bias states, all -> 1
-		vis_states = data.astype(bool)
-		hid_aes = np.dot(vis_states, self.weights)
+		data = np.insert(data, 0, 1, axis=1) # add column of bias states, all -> 1
+		hid_aes = np.dot(data, self.weights)
 		hid_probs = self._logistic_function(hid_aes)
-		hid_states  = hid_probs > np.random.randn(data.shape[0], self.num_hidden+1)
 		if return_states:
+			hid_states  = hid_probs > np.random.randn(data.shape[0], self.num_hidden+1)
 			return hid_states[:,1:]
 		else:
 			return hid_probs[:,1:]
@@ -110,7 +115,7 @@ class RBMNetwork:
 			if step == num_steps-1:
 				break
 			# calculate hidden units states
-			hid_aes = np.dot(random_data.astype(bool), self.weights)
+			hid_aes = np.dot(random_data, self.weights)
 			hid_probs = self._logistic_function(hid_aes)
 			hid_probs[:,0] = 1 # fix bias unit
 			hid_states  = hid_probs > np.random.randn(random_data.shape[0], self.num_hidden+1)
