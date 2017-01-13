@@ -31,7 +31,7 @@ class RBMNetwork:
 		self.is_constructed = True
 
 
-	def train(self, num_epochs, trainX, trainY = None, testX = None, testY = None, use_states=False, log_epochs=False, num_cd_steps=1, no_decay=False):
+	def train(self, num_epochs, trainX, trainY = None, testX = None, testY = None, use_states=False, log_epochs=False, num_cd_steps=1, no_decay=False, exit_on_error_increase=False):
 		if not self.is_constructed:
 			self.construct()
 
@@ -49,7 +49,7 @@ class RBMNetwork:
 			if use_states:
 				pos_association = np.dot(np.transpose(data.astype(np.bool)), hid_states)
 			else:
-				pos_association = np.dot(np.transpose(data.astype(np.bool)), hid_probs) # vis_probs is not known yet, we'll take the states, which are equal to the dataset plus the bias
+				pos_association = np.dot(np.transpose(data), hid_probs) # vis_probs is not known yet, we'll take the states, which are equal to the dataset plus the bias
 			
 			for cd in range(num_cd_steps):
 				# backward (negative) move: compute the states & probabilities of the visible units based on the hidden states
@@ -69,13 +69,21 @@ class RBMNetwork:
 			else:
 				neg_association = np.dot(np.transpose(vis_probs), hid_probs)
 
+			# measure for preupdate exit
+			error = np.sum((data - vis_probs) ** 2) / data.shape[0]
+			if error > last_error and exit_on_error_increase:
+				last_error = error
+				print('	Exit due to increased error: '+str(last_error))
+				break
+
 			# update weights
 			self.weights = self.weights + self.learning_rate*((pos_association - neg_association) / data.shape[0])
 			# decay learning rate
 			if not no_decay:
 				self.learning_rate = self.learning_rate/2
-			# measure
-			last_error = np.sum((data - vis_probs) ** 2)
+
+			# finish epoch
+			last_error = error
 			if self.log:
 				print('Epoch '+str(epoch))
 				print('	100%:\n	error='+str(last_error)+'\n	...squared difference of data to expected visible state (probability)')
