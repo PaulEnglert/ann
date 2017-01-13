@@ -31,7 +31,7 @@ class RBMNetwork:
 		self.is_constructed = True
 
 
-	def train(self, num_epochs, trainX, trainY = None, testX = None, testY = None, use_states=False, log_epochs=False):
+	def train(self, num_epochs, trainX, trainY = None, testX = None, testY = None, use_states=False, log_epochs=False, num_cd_steps=1, no_decay=False):
 		if not self.is_constructed:
 			self.construct()
 
@@ -51,16 +51,19 @@ class RBMNetwork:
 			else:
 				pos_association = np.dot(np.transpose(data.astype(np.bool)), hid_probs) # vis_probs is not known yet, we'll take the states, which are equal to the dataset plus the bias
 			
-			# backward (negative) move: compute the states & probabilities of the visible units based on the hidden states
-			vis_aes = np.dot(hid_states, np.transpose(self.weights))
-			vis_probs = self._logistic_function(vis_aes)
-			vis_probs[:,0] = 1 # fix bias unit
+			for cd in range(num_cd_steps):
+				# backward (negative) move: compute the states & probabilities of the visible units based on the hidden states
+				vis_aes = np.dot(hid_states, np.transpose(self.weights))
+				vis_probs = self._logistic_function(vis_aes)
+				vis_probs[:,0] = 1 # fix bias unit
 
-			# forward (negative) move: recompute the states & probabilities of the hidden units, this time based on the expected outcome of the reverse step before
-			hid_aes = np.dot(vis_probs, self.weights)
-			hid_probs = self._logistic_function(hid_aes)
-			if use_states:
+				# forward (negative) move: recompute the states & probabilities of the hidden units, this time based on the expected outcome of the reverse step before
+				hid_aes = np.dot(vis_probs, self.weights)
+				hid_probs = self._logistic_function(hid_aes)
 				hid_states  = hid_probs > np.random.randn(data.shape[0], self.num_hidden+1)
+			
+			# calculate association after n alternating gibbs sampling steps
+			if use_states:
 				vis_states  = vis_probs > np.random.randn(data.shape[0], self.num_visible+1)
 				neg_association = np.dot(np.transpose(vis_states), hid_states)
 			else:
@@ -69,14 +72,15 @@ class RBMNetwork:
 			# update weights
 			self.weights = self.weights + self.learning_rate*((pos_association - neg_association) / data.shape[0])
 			# decay learning rate
-			self.learning_rate = self.learning_rate/2
+			if not no_decay:
+				self.learning_rate = self.learning_rate/2
 			# measure
 			last_error = np.sum((data - vis_probs) ** 2)
 			if self.log:
 				print('Epoch '+str(epoch))
 				print('	100%:\n	error='+str(last_error)+'\n	...squared difference of data to expected visible state (probability)')
 			if not self.log and log_epochs:
-				print('	Epoch '+str(epoch)+': err='+str(last_error))
+				print('	Epoch '+str(epoch)+' ('+str(num_cd_steps)+' CD steps): err='+str(last_error))
 		
 		if self.log:
 			self.print_weights()
