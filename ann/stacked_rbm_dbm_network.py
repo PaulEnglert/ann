@@ -3,6 +3,7 @@
 import numpy as np
 
 from .restricted_boltzmann_machine_v2 import RBMNetwork
+from .multi_layer_network import MLNetwork
 
 
 """
@@ -37,7 +38,11 @@ class DBNetwork:
 		print('	--> number of machines to train: '+str(len(self.machines)))
 		self.is_constructed = True
 
+
 	def train(self, epochs, trainX, trainY = None, num_gibbs_sampling_steps=1):
+		'''
+		train individual boltzmann machines, with the outputs of the preceeding machines
+		'''
 		if not self.is_constructed:
 			self.construct()
 
@@ -62,14 +67,22 @@ class DBNetwork:
 			print('3. Labelling units')
 			self.label_units(trainX, trainY)
 
+	def convert_to_mlp(self,):
+		'''
+		Transform network into a backpropagation algorithm 
+		'''
+		mlp = MLNetwork()
+		pass
+
 	def predict(self, input):
+		'''
+		Predict with the stacked boltzmann machines
+		'''
 		data = input
 		for i, m in enumerate(self.machines):
-			if i == len(self.machines)-1:
-				data = m.predict(data, return_states=False) # the last machine returns probabilities
-			else:
-				data = m.predict(data, return_states=True) # pass on states not probabilities
+			data = m.predict(data, return_states=False)
 		return data
+
 
 	def label_units(self, dataX, dataY):
 		labels = np.unique(dataY)
@@ -94,7 +107,6 @@ class DBNetwork:
 			lps[i,:] = -1
 			lps[:,j] = -1
 			labelled = labelled + 1
-
 		self.is_labeled = True
 		return self.labelling_probs
 

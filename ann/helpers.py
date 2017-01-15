@@ -2,6 +2,7 @@
 
 import logging
 import sys
+import numpy as np
 
 # setup logging
 log = logging.getLogger('ann.default')
@@ -27,3 +28,16 @@ class util:
 	@staticmethod
 	def log(line):
 		log.info(str(line))
+
+	@staticmethod
+	def create_minibatches(data, size):
+		batches=[]
+		batch = []
+		for i in range(len(data)):
+			batch.append(data[i])
+			if len(batch) == size or i == len(data)-1:
+				batches.append(np.asarray(batch))
+				batch = []
+		if len(batches[-1]) < size:
+			return batches[0:-2]
+		return batches

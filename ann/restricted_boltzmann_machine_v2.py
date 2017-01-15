@@ -36,7 +36,7 @@ class RBMNetwork:
 			self.construct()
 
 		# prepare data
-		data = trainX
+		data = trainX.copy()
 		data = np.insert(data, 0, 1, axis=1) # add column of bias states, all -> 1
 		last_error=np.NaN
 		# run 
@@ -106,10 +106,10 @@ class RBMNetwork:
 			self.labelling.append([l]+[np.average(output[np.where(output[...,0]==l)][...,u]) for u in range(1,self.num_hidden+1)])
 		return self.labelling
 
-	def predict(self, data, return_states=False): # forward move in network
+	def predict(self, d, return_states=False): # forward move in network
 		if not self.is_trained:
 			raise Exception('Network is not trained yet.')
-		data = np.insert(data, 0, 1, axis=1) # add column of bias states, all -> 1
+		data = np.insert(d.copy(), 0, 1, axis=1) # add column of bias states, all -> 1
 		hid_aes = np.dot(data, self.weights)
 		hid_probs = self._logistic_function(hid_aes)
 		if return_states:

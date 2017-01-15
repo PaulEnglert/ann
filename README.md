@@ -1,3 +1,13 @@
+# --------------------------
+# --------------------------
+
+# THIS REPO IS NOT MAINTAINED ANYMORE - CHECK [ML](https://github.com/PaulEnglert/ML) FOR NEWEST UPDATES
+
+# --------------------------
+# --------------------------
+
+
+
 # Artificial Neural Networks
 
 This repository is an playground to implement a full-flexed artificial neural network in python.
